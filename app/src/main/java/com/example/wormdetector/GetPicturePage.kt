@@ -1,7 +1,6 @@
 package com.example.wormdetector
 
-import android.media.Image
-import androidx.compose.foundation.Image
+import android.util.Log
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -11,33 +10,41 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import coil.compose.AsyncImagePainter
-import coil.compose.rememberImagePainter
 import com.example.wormdetector.domain.item.MLItem
 import com.example.wormdetector.ui.GetPictureViewModel
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
+import com.bumptech.glide.integration.compose.GlideImage
+import java.util.Timer
+import kotlin.concurrent.timerTask
 
 @Composable
-fun GetPicturePage(navController: NavController){
-
-    val getPictureViewModel = viewModel(modelClass = GetPictureViewModel::class.java)
+fun GetPicturePage(navController: NavController, fileName:String?){
+    Log.d("fileName", fileName.toString())
+    val getPictureViewModel:GetPictureViewModel = hiltViewModel()
     val ml by getPictureViewModel.ml.collectAsState()
-    LazyColumn{
-        items(ml){ ml:MLItem ->
-            MLCard(ml = ml)
-        }
+    Timer().schedule(timerTask {getPictureViewModel.getML(fileName.toString())},1000)
 
+
+    Column(modifier = Modifier
+        .fillMaxSize()
+        .wrapContentSize(Alignment.Center)
+    ){
+        Log.d("ML Item","You get ml item")
+        MLCard(ml = ml)
+        Spacer(modifier = Modifier.padding(20.dp))
     }
 
 }
 
+@OptIn(ExperimentalGlideComposeApi::class)
 @Composable
 fun MLCard(ml: MLItem){
-    val image = rememberImagePainter(data = ml.image)
     Card(
         elevation = 5.dp,
         shape = RoundedCornerShape(5.dp),
@@ -45,29 +52,38 @@ fun MLCard(ml: MLItem){
             .padding(top = 5.dp, bottom = 5.dp, start = 10.dp, end = 10.dp)
             .fillMaxSize()
     ){
-
-        Column{
-            Image(
-                painter = image,
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
+        Spacer(modifier = Modifier.padding(20.dp))
+        LazyColumn(modifier = Modifier
+            .fillMaxWidth()
+            .wrapContentWidth(Alignment.CenterHorizontally)
+        ){
+            Log.d("getMLImage", ml.image)
+            item{
+                GlideImage(
+                    model = ml.image,
+                    contentDescription = null,
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier
+                        .size(500.dp)
+                )
+                Spacer(modifier = Modifier.padding(16.dp))
+                Column(modifier = Modifier
                     .fillMaxWidth()
-                    .height(250.dp)
-            )
-            Column(modifier = Modifier.fillMaxWidth()){
-                ml.data.forEach {
-                    Text(text = "Nama cacing : "+it.name)
-                    Spacer(modifier = Modifier.padding(15.dp))
-                    Text(text = "Jumlah cacing : "+it.count)
-                    Spacer(modifier = Modifier.padding(15.dp))
-                    val counter = 1
-                    it.`object`.forEach {
-                        Text(text = "Cacing " + counter + " : "+it.name)
+                    .wrapContentWidth(Alignment.CenterHorizontally)
+                ){
+                    ml.data.map { data ->
+                        Text(text = "Nama Cacing : "+data.name)
                         Spacer(modifier = Modifier.padding(15.dp))
-                        Text(text = "Kelas : "+it.`class`)
+                        Text(text = "Jumlah Cacing : "+data.count)
                         Spacer(modifier = Modifier.padding(15.dp))
-                        Text(text = "Berapa persen objek benar : " + (it.confidence * 100))
+                        var counter:Int = 1
+                        data.`object`.map{ `object` ->
+                            Text(text = "Cacing " + `object`.name +" "+counter++)
+                            Spacer(modifier = Modifier.padding(15.dp))
+                            Text(text = "Kelas : "+`object`.`class`)
+                            Spacer(modifier = Modifier.padding(15.dp))
+                            Text(text = "Berapa persen objek benar : " + (`object`.confidence * 100))
+                        }
                     }
                 }
             }

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    // store in Android app package name directory. Associate with getCacheDir
+    // file path will be storage/emulated/0/Android/data/com.example.app/...
+    <cache-path name="cache" path="/"/>
+</paths>
