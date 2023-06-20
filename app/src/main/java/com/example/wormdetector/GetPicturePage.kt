@@ -30,7 +30,6 @@ fun GetPicturePage(navController: NavController, fileName:String?){
     val ml by getPictureViewModel.ml.collectAsState()
     Timer().schedule(timerTask {getPictureViewModel.getML(fileName.toString())},1000)
 
-
     Column(modifier = Modifier
         .fillMaxSize()
         .wrapContentSize(Alignment.Center)

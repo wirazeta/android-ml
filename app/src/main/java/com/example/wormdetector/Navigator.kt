@@ -2,15 +2,11 @@ package com.example.wormdetector
 
 import android.util.Log
 import androidx.compose.runtime.Composable
-import androidx.core.net.toUri
-import androidx.navigation.NavDeepLink
-import androidx.navigation.NavDeepLinkRequest
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import androidx.navigation.navDeepLink
 
 
 @Composable
@@ -20,22 +16,25 @@ fun Navigator(){
         composable(
             route = Screen.TakePicturePage.route,
             arguments = listOf(
-                navArgument("alreadyOpenCamera"){
-                    type = NavType.BoolType
-                    defaultValue = false
-                    nullable = false
-                }
+                navArgument("imageNameCamera"){
+                    type = NavType.StringType
+                    defaultValue = ""
+                    nullable = true
+                },
             )
         ){
-            it.arguments?.getBoolean("alreadyOpenCamera")
-                ?.let { it1 -> TakePicturePage(navController = navController, alreadyOpenCamera = it1) }
+            it.arguments?.getString("imageNameCamera")
+                ?.let { it1 ->
+                    Log.d("imageNameNavigator","$it1")
+                    TakePicturePage(navController = navController, imageNameCamera = it1)
+                }
         }
         composable(
             route = Screen.GetPicturePage.route + "/{fileName}",
             arguments = listOf(
                 navArgument("fileName") {
                     type = NavType.StringType
-                    defaultValue = ""
+                    defaultValue = null
                     nullable = true
             })
         ){entry ->
@@ -45,8 +44,8 @@ fun Navigator(){
         composable(
             route = Screen.CameraScreen.route,
         ){
-            CameraScreen(navController = navController, navigateToTakePicture = {alreadyOpenCamera->
-                navController.navigate(Screen.TakePicturePage.createRoute(alreadyOpenCamera))
+            CameraScreen(navController = navController, navigateToTakePicture = { imageNameCamera ->
+                navController.navigate(Screen.TakePicturePage.createRoute(imageNameCamera))
             })
         }
     }

@@ -1,8 +1,12 @@
 package com.example.wormdetector
 
+import android.annotation.SuppressLint
 import android.content.Context
+import android.database.Cursor
 import android.net.Uri
+import android.provider.OpenableColumns
 import android.util.Log
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
@@ -45,10 +49,10 @@ import java.util.concurrent.Executor
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
-private var imageUri:String = ""
+private var imageNameCamera:String? = ""
 private var statusWriteFile:Boolean = false
 @Composable
-fun CameraScreen(navController:NavController, navigateToTakePicture: (Boolean) -> Unit){
+fun CameraScreen(navController:NavController, navigateToTakePicture: (String?) -> Unit){
     val context = LocalContext.current
     val cameraExecutor:ExecutorService = Executors.newSingleThreadExecutor()
     val outputDirectory: File = getOutputDirectory(context)
@@ -70,7 +74,7 @@ fun CameraView(
     onImageCapture: (Uri) -> Unit,
     onError: (ImageCaptureException) -> Unit,
     navController: NavController,
-    navigateToTakePicture: (Boolean) -> Unit,
+    navigateToTakePicture: (String?) -> Unit,
     context:Context
 ){
     val lensFacing = CameraSelector.LENS_FACING_BACK
@@ -129,7 +133,8 @@ fun CameraView(
             }
         )
         Button(onClick = {
-            navigateToTakePicture(true)
+            Log.d("imageNameCameraTaken","$imageNameCamera")
+            navigateToTakePicture(imageNameCamera)
         }) {
             Text(text = "Done")
         }
@@ -158,10 +163,9 @@ private fun takePhoto(
         }
         override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
             val savedUri = Uri.fromFile(photoFile)
-            imageUri = savedUri.path.toString()
-            writeJSONtoFile("imageUri.json", imageUri)
-            Log.d("Write File","File written status is $statusWriteFile")
-            Image(Uri.parse(imageUri))
+            imageNameCamera = getFileName(savedUri, context)
+            Log.d("imageNameCamera","$imageNameCamera")
+            Image(savedUri)
             onImageCapture(savedUri)
         }
     })
@@ -181,17 +185,30 @@ private fun getOutputDirectory(context: Context):File{
     return if(mediaDir != null && mediaDir.exists()) mediaDir else File("")
 }
 
-private fun writeJSONtoFile(s:String, imageUri:String){
-    var post = ImageClass(imageUri)
-    var gson = Gson()
-    var jsonString:String = gson.toJson(post)
-    val file:File = File(s)
-    try{
-        file.writeText(jsonString)
-    }catch(e:Exception){
-        Log.e("Write Text Error", "$e")
+@SuppressLint("Range")
+private fun getFileName(uri:Uri, context: Context):String? {
+    var res: String? = null
+    Log.d("imageName","${uri.scheme?.equals("file")}")
+
+    if(uri.scheme?.equals("file") == true){
+        var cursor: Cursor? = context.contentResolver.query(uri, null, null, null, null)
+        try{
+            if(cursor != null && cursor.moveToFirst()){
+                res = cursor.getString(cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME))
+                Log.d("imageName","$res")
+            }
+        }finally{
+            cursor?.close()
+        }
+        if(res == null){
+            res = uri.path.toString()
+            var cutt: Int = res.lastIndexOf('/')
+            if(cutt != -1){
+                res = res.substring(cutt+1)
+            }
+        }
     }
-    isWritted(true)
+    return res
 }
 
 private fun isWritted(alreadyWriteFile:Boolean){

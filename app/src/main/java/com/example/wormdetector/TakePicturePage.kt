@@ -52,7 +52,7 @@ import java.io.File
 var shouldShowCamera: MutableState<Boolean> = mutableStateOf(false)
 
 @Composable
-fun TakePicturePage(navController: NavController, alreadyOpenCamera:Boolean){
+fun TakePicturePage(navController: NavController, imageNameCamera: String){
 //    var alreadyOpenCamera:Boolean = alreadyOpenCamera
     var context = LocalContext.current
     var imageUri by remember { mutableStateOf<Uri?>(null) }
@@ -71,6 +71,12 @@ fun TakePicturePage(navController: NavController, alreadyOpenCamera:Boolean){
 //            Log.i("Camera Permission", "Permission Granted")
 //        }
 //    }
+//    Log.d("imageNameTakePictureCon","${imageNameCamera.equals("")}")
+    if(imageNameCamera != ""){
+        imageName = imageNameCamera
+        Log.d("imageNameTakePicture","$imageName")
+        imageUri = Uri.parse("file:///storage/emulated/0/Android/data/com.example.wormdetector/files/$imageName")
+    }
     val getImageLauncher = rememberLauncherForActivityResult(contract = ActivityResultContracts.PickVisualMedia()){uri:Uri? ->
         if(uri != imageUri){
             imageUri = uri
@@ -109,15 +115,15 @@ fun TakePicturePage(navController: NavController, alreadyOpenCamera:Boolean){
         Spacer(modifier = Modifier.padding(20.dp))
         shouldShowCamera.value = ContextCompat.checkSelfPermission(context, android.Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
         checkCameraPermission(context)
-//        Button(onClick = {
-//            navController.navigate(Screen.CameraScreen.route)
-//        },
-//            modifier = Modifier
-//                .fillMaxWidth()
-//                .wrapContentWidth(Alignment.CenterHorizontally)
-//        ) {
-//            Text(text="Open Camera")
-//        }
+        Button(onClick = {
+            navController.navigate(Screen.CameraScreen.route)
+        },
+            modifier = Modifier
+                .fillMaxWidth()
+                .wrapContentWidth(Alignment.CenterHorizontally)
+        ) {
+            Text(text="Open Camera")
+        }
         Spacer(modifier = Modifier.padding(20.dp))
         Button(onClick = {
             getImageLauncher.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
@@ -275,14 +281,14 @@ private fun getImageUri(context: Context): Uri{
 //    shouldShowCamera.value = false
 //}
 
-private fun getOutputDirectory(context: Context):File{
-    val mediaDir = context.getExternalFilesDirs("").firstOrNull()?.let{
-        File(it.path.toString()).apply {
-            mkdirs()
-        }
-    }
-    return if(mediaDir != null && mediaDir.exists()) mediaDir else File("")
-}
+//private fun getOutputDirectory(context: Context):File{
+//    val mediaDir = context.getExternalFilesDirs("").firstOrNull()?.let{
+//        File(it.path.toString()).apply {
+//            mkdirs()
+//        }
+//    }
+//    return if(mediaDir != null && mediaDir.exists()) mediaDir else File("")
+//}
 
 //private fun requestCameraPermission(requestPermissionLauncher: ActivityResultLauncher<String>, context: Context, activity: Activity){
 //    when{
@@ -307,15 +313,15 @@ private fun checkCameraPermission(context:Context){
     }
 }
 
-private fun readJSONFromFile(f:String): String? {
-    var gson = Gson()
-    val bufferedReader: BufferedReader = File(f).bufferedReader()
-    val inputString = bufferedReader.use {
-        it.readText()
-    }
-    var post = gson.fromJson(inputString, ImageClass::class.java)
-    return post.imageUri
-}
+//private fun readJSONFromFile(f:String): String? {
+//    var gson = Gson()
+//    val bufferedReader: BufferedReader = File(f).bufferedReader()
+//    val inputString = bufferedReader.use {
+//        it.readText()
+//    }
+//    var post = gson.fromJson(inputString, ImageClass::class.java)
+//    return post.imageUri
+//}
 
 
 
