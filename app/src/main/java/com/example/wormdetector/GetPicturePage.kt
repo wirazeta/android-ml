@@ -8,27 +8,39 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Card
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.wormdetector.domain.item.MLItem
-import com.example.wormdetector.ui.GetPictureViewModel
+//import com.example.wormdetector.ui.GetPictureViewModel
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
 import com.bumptech.glide.integration.compose.GlideImage
+import com.example.wormdetector.ui.LoadingViewModel
 import java.util.Timer
 import kotlin.concurrent.timerTask
 
 @Composable
 fun GetPicturePage(navController: NavController, fileName:String?){
     Log.d("fileName", fileName.toString())
-    val getPictureViewModel:GetPictureViewModel = hiltViewModel()
+    val getPictureViewModel: LoadingViewModel = hiltViewModel()
     val ml by getPictureViewModel.ml.collectAsState()
-    Timer().schedule(timerTask {getPictureViewModel.getML(fileName.toString())},1000)
+    Log.d("MlValue","$ml")
+
+    LaunchedEffect(fileName.toString()){
+        Log.d("LaunchedEffect","$fileName")
+        Timer().schedule(timerTask { getPictureViewModel.getML(fileName.toString()) }, 1000)
+    }
+
+//    var mlState by remember{mutableStateOf<MLItem?>(ml)}
 
     Column(modifier = Modifier
         .fillMaxSize()
@@ -81,7 +93,7 @@ fun MLCard(ml: MLItem){
                             Spacer(modifier = Modifier.padding(15.dp))
                             Text(text = "Kelas : "+`object`.`class`)
                             Spacer(modifier = Modifier.padding(15.dp))
-                            Text(text = "Berapa persen objek benar : " + (`object`.confidence * 100))
+                            Text(text = "Berapa persen objek benar : " + "%.2f".format((`object`.confidence * 100)) + "%")
                         }
                     }
                 }

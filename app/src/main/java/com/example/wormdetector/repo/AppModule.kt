@@ -32,9 +32,9 @@ object AppModule {
     @Provides
     fun provideMLApi(): MLApi {
         val okHttpClient:OkHttpClient = OkHttpClient().newBuilder()
-            .readTimeout(20, TimeUnit.SECONDS)
-            .writeTimeout(20, TimeUnit.SECONDS)
-            .connectTimeout(20, TimeUnit.SECONDS)
+            .readTimeout(10, TimeUnit.SECONDS)
+            .writeTimeout(10, TimeUnit.SECONDS)
+            .connectTimeout(10, TimeUnit.SECONDS)
             .build()
         return Retrofit.Builder()
             .baseUrl(Constaint.BASE_URL)

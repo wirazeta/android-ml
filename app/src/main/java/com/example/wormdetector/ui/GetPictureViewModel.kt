@@ -17,7 +17,7 @@ import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import javax.inject.Inject
 @HiltViewModel
-class GetPictureViewModel @Inject constructor(private val getMLUseCase: GetMLUseCase): ViewModel(){
+class LoadingViewModel @Inject constructor(private val getMLUseCase: GetMLUseCase): ViewModel(){
 
     private val _ml = MutableStateFlow(MLItem(emptyList(),"","",0))
     val ml: StateFlow<MLItem> get() = _ml
