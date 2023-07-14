@@ -9,7 +9,11 @@ import com.example.wormdetector.domain.item.MLItem
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.launch
 import okhttp3.MediaType
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -22,17 +26,21 @@ class LoadingViewModel @Inject constructor(private val getMLUseCase: GetMLUseCas
     private val _ml = MutableStateFlow(MLItem(emptyList(),"","",0))
     val ml: StateFlow<MLItem> get() = _ml
 
-//    init {
-//        getML()
-//    }
-
     fun getML(filename:String){
         viewModelScope.launch {
             try{
-                val ml = getMLUseCase(filename)
-                if (ml != null) {
-                    _ml.value = ml
+                val requestDataFlow = flow{
+                    val ml = getMLUseCase(filename)
+                    emit(ml)
                 }
+                requestDataFlow
+                    .distinctUntilChanged()
+                    .collectLatest { data ->
+                        Log.d("DataFlowChangeValue", "$data")
+                        if (data != null) {
+                            _ml.value = data
+                        }
+                    }
             }catch(e:Exception){
                 Log.e("getML Error","$e")
             }
